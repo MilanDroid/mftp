@@ -14,29 +14,57 @@ A feature-rich command-line FTP client written in Python with support for passwo
 
 ## Installation
 
-### Quick Install (Recommended)
+### Option 1: Install from Source (Recommended for Development)
 
-Install the FTP client as a system-wide command:
+Clone the repository and install in editable mode:
 
 ```bash
+git clone https://github.com/antony/mftp.git
+cd mftp
 pip install -e .
 ```
 
-Or for a global installation without development mode:
+### Option 2: Install from Wheel File (Recommended for Distribution)
+
+If you received a wheel file (.whl), install it directly:
+
+```bash
+pip install mftp_client-1.0.0-py3-none-any.whl
+```
+
+This works on any platform: macOS, Linux, Windows.
+
+### Option 3: Install from Source Tarball
+
+```bash
+pip install mftp_client-1.0.0.tar.gz
+```
+
+### Option 4: Build and Install Locally
+
+From the project directory:
 
 ```bash
 pip install .
 ```
 
-After installation, you can use the `mftp` command from anywhere on your system:
+After installation using any method above, you can use the `mftp` command from anywhere on your system:
 
 ```bash
 mftp -H ftp.example.com -u myuser
 ```
 
-### Manual Installation
+### Platform Support
 
-If you prefer to run the script directly:
+This package works on:
+- macOS (Intel and Apple Silicon)
+- Linux (all distributions)
+- Windows (10/11)
+- Any platform with Python 3.6+
+
+### Manual Installation (Without pip)
+
+If you prefer to run the script directly without installation:
 
 1. Make sure you have Python 3.6 or higher installed
 2. Install dependencies:
@@ -51,12 +79,58 @@ Or manually install:
 pip install colorama
 ```
 
+3. Run the script:
+
+```bash
+python ftp_client.py
+```
+
 ### Uninstall
 
 To remove the installed command:
 
 ```bash
 pip uninstall mftp-client
+```
+
+## Distribution
+
+### For Developers: Building Distribution Packages
+
+To create distribution packages that can be installed on any device:
+
+1. Install build tools:
+```bash
+pip install build wheel twine
+```
+
+2. Build the distribution packages:
+```bash
+python -m build
+```
+
+This creates two files in the `dist/` directory:
+- `mftp_client-1.0.0-py3-none-any.whl` - Wheel package (recommended)
+- `mftp_client-1.0.0.tar.gz` - Source distribution
+
+3. Share these files with others to install on any device:
+```bash
+pip install mftp_client-1.0.0-py3-none-any.whl
+```
+
+### Publishing to PyPI (Optional)
+
+To make the package available via `pip install mftp-client` globally:
+
+1. Create an account on [PyPI](https://pypi.org)
+2. Upload the package:
+```bash
+twine upload dist/*
+```
+
+Then anyone can install it with:
+```bash
+pip install mftp-client
 ```
 
 ## Usage
@@ -238,5 +312,7 @@ This client transmits passwords in plain text as part of the FTP protocol. For s
 - colorama 0.4.6+
 
 ## License
+
+MIT License - See [LICENSE](LICENSE) file for details.
 
 This is free and open source software.

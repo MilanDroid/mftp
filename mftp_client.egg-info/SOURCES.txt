@@ -1,6 +1,8 @@
+MANIFEST.in
 README.md
 ftp_client.py
 pyproject.toml
+requirements.txt
 setup.py
 mftp_client.egg-info/PKG-INFO
 mftp_client.egg-info/SOURCES.txt

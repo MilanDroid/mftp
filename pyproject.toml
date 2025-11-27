@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mftp-client"
+version = "1.0.0"
+description = "A feature-rich command-line FTP client with password authentication and recursive operations"
+readme = "README.md"
+requires-python = ">=3.6"
+authors = [
+    {name = "Antony"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Topic :: Internet :: File Transfer Protocol (FTP)",
+    "Topic :: Utilities",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "colorama>=0.4.6"
+]
+
+[project.scripts]
+mftp = "ftp_client:main"
+
+[project.urls]
+Homepage = "https://github.com/antony/mftp"

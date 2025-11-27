@@ -1,0 +1,10 @@
+README.md
+ftp_client.py
+pyproject.toml
+setup.py
+mftp_client.egg-info/PKG-INFO
+mftp_client.egg-info/SOURCES.txt
+mftp_client.egg-info/dependency_links.txt
+mftp_client.egg-info/entry_points.txt
+mftp_client.egg-info/requires.txt
+mftp_client.egg-info/top_level.txt

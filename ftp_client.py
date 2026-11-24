@@ -18,7 +18,7 @@ class FTPClient:
     def connect(self, host, user, password, port=21):
         """Connect to FTP server with password authentication"""
         try:
-            print(f"{Fore.CYAN}Connecting to {host}:{port}...{Style.RESET_ALL}")
+            print(f"{Fore.CYAN}Connecting to {host}:{port} with username {user}...{Style.RESET_ALL}")
             self.ftp = FTP()
             self.ftp.connect(host, port)
             self.ftp.login(user, password)
@@ -62,6 +62,15 @@ class FTPClient:
             current = self.ftp.pwd()
             self.ftp.cwd(path)
             self.ftp.cwd(current)
+            return True
+        except error_perm:
+            return False
+
+    def file_exists(self, filepath):
+        """Check if a file exists on the server"""
+        try:
+            # Try to get the size of the file
+            self.ftp.size(filepath)
             return True
         except error_perm:
             return False
@@ -140,6 +149,20 @@ class FTPClient:
             print(f"{Fore.RED}✗ Failed to remove directory {path}: {e}{Style.RESET_ALL}")
             return False
 
+    def remove_directories(self, dirpaths):
+        """Remove multiple directories recursively"""
+        if not self.connected:
+            print(f"{Fore.RED}✗ Not connected to server{Style.RESET_ALL}")
+            return
+
+        print(f"{Fore.CYAN}Removing {len(dirpaths)} directory(ies)...{Style.RESET_ALL}")
+        success_count = 0
+        for dirpath in dirpaths:
+            if self.remove_directory_recursive(dirpath):
+                success_count += 1
+
+        print(f"{Fore.GREEN}✓ Removed {success_count}/{len(dirpaths)} directory(ies){Style.RESET_ALL}")
+
     def upload_file(self, local_path, remote_path=None):
         """Upload a file to the FTP server"""
         if not self.connected:
@@ -198,6 +221,132 @@ class FTPClient:
             print(f"{Fore.RED}✗ Failed to upload folder {local_path}: {e}{Style.RESET_ALL}")
             return False
 
+    def upload_files(self, local_paths):
+        """Upload multiple files"""
+        if not self.connected:
+            print(f"{Fore.RED}✗ Not connected to server{Style.RESET_ALL}")
+            return
+
+        print(f"{Fore.CYAN}Uploading {len(local_paths)} file(s)...{Style.RESET_ALL}")
+        success_count = 0
+        for local_path in local_paths:
+            if self.upload_file(local_path):
+                success_count += 1
+
+        print(f"{Fore.GREEN}✓ Uploaded {success_count}/{len(local_paths)} file(s){Style.RESET_ALL}")
+
+    def upload_folders(self, local_paths):
+        """Upload multiple folders"""
+        if not self.connected:
+            print(f"{Fore.RED}✗ Not connected to server{Style.RESET_ALL}")
+            return
+
+        print(f"{Fore.CYAN}Uploading {len(local_paths)} folder(s)...{Style.RESET_ALL}")
+        success_count = 0
+        for local_path in local_paths:
+            if self.upload_folder(local_path):
+                success_count += 1
+
+        print(f"{Fore.GREEN}✓ Uploaded {success_count}/{len(local_paths)} folder(s){Style.RESET_ALL}")
+
+    def sync_path(self, local_path, remote_path=None, skip_existing=False):
+        """
+        Sync a file or folder to the FTP server
+
+        Args:
+            local_path: Local file or folder path
+            remote_path: Remote destination path (optional)
+            skip_existing: If True, skip files that already exist on server
+        """
+        if not self.connected:
+            print(f"{Fore.RED}✗ Not connected to server{Style.RESET_ALL}")
+            return False
+
+        if not os.path.exists(local_path):
+            print(f"{Fore.RED}✗ Local path not found: {local_path}{Style.RESET_ALL}")
+            return False
+
+        if os.path.isfile(local_path):
+            return self._sync_file(local_path, remote_path, skip_existing)
+        elif os.path.isdir(local_path):
+            return self._sync_folder(local_path, remote_path, skip_existing)
+
+        return False
+
+    def _sync_file(self, local_path, remote_path=None, skip_existing=False):
+        """Sync a single file to the server"""
+        if remote_path is None:
+            remote_path = os.path.basename(local_path)
+
+        # Check if file exists on server
+        if self.file_exists(remote_path):
+            if skip_existing:
+                print(f"{Fore.YELLOW}⊘ Skipped (exists): {local_path} -> {remote_path}{Style.RESET_ALL}")
+                return True
+            else:
+                print(f"{Fore.CYAN}↻ Replacing: {local_path} -> {remote_path}{Style.RESET_ALL}")
+        else:
+            print(f"{Fore.CYAN}↑ Uploading: {local_path} -> {remote_path}{Style.RESET_ALL}")
+
+        # Upload or replace the file
+        try:
+            with open(local_path, 'rb') as f:
+                self.ftp.storbinary(f'STOR {remote_path}', f)
+            print(f"{Fore.GREEN}✓ Synced: {local_path} -> {remote_path}{Style.RESET_ALL}")
+            return True
+        except Exception as e:
+            print(f"{Fore.RED}✗ Failed to sync {local_path}: {e}{Style.RESET_ALL}")
+            return False
+
+    def _sync_folder(self, local_path, remote_path=None, skip_existing=False):
+        """Sync a folder and all its contents recursively"""
+        if remote_path is None:
+            remote_path = os.path.basename(local_path)
+
+        try:
+            # Create remote directory if it doesn't exist
+            if not self.is_directory(remote_path):
+                try:
+                    self.ftp.mkd(remote_path)
+                    print(f"{Fore.CYAN}Created remote directory: {remote_path}{Style.RESET_ALL}")
+                except error_perm as e:
+                    print(f"{Fore.RED}✗ Failed to create directory {remote_path}: {e}{Style.RESET_ALL}")
+                    return False
+            else:
+                print(f"{Fore.CYAN}Directory exists: {remote_path}{Style.RESET_ALL}")
+
+            # Sync all items in the directory
+            for item in os.listdir(local_path):
+                local_item_path = os.path.join(local_path, item)
+                remote_item_path = f"{remote_path}/{item}"
+
+                if os.path.isfile(local_item_path):
+                    self._sync_file(local_item_path, remote_item_path, skip_existing)
+                elif os.path.isdir(local_item_path):
+                    self._sync_folder(local_item_path, remote_item_path, skip_existing)
+
+            print(f"{Fore.GREEN}✓ Synced folder: {local_path} -> {remote_path}{Style.RESET_ALL}")
+            return True
+
+        except Exception as e:
+            print(f"{Fore.RED}✗ Failed to sync folder {local_path}: {e}{Style.RESET_ALL}")
+            return False
+
+    def sync_paths(self, local_paths, skip_existing=False):
+        """Sync multiple files or folders"""
+        if not self.connected:
+            print(f"{Fore.RED}✗ Not connected to server{Style.RESET_ALL}")
+            return
+
+        mode = "skip mode" if skip_existing else "replace mode"
+        print(f"{Fore.CYAN}Syncing {len(local_paths)} item(s) ({mode})...{Style.RESET_ALL}")
+        success_count = 0
+        for local_path in local_paths:
+            if self.sync_path(local_path, None, skip_existing):
+                success_count += 1
+
+        print(f"{Fore.GREEN}✓ Synced {success_count}/{len(local_paths)} item(s){Style.RESET_ALL}")
+
     def rename(self, old_name, new_name):
         """Rename a file or folder"""
         if not self.connected:
@@ -251,10 +400,12 @@ FTP Client - Available Commands
   pwd                                       - Print working directory
 
 {Fore.YELLOW}File Operations:{Style.RESET_ALL}
-  rm <file1> [file2] ...                    - Remove one or more files
-  rmdir <directory>                         - Remove directory recursively
-  upload <local_path> [remote_path]         - Upload a file
-  uploaddir <local_path> [remote_path]      - Upload a folder recursively
+  rm <file1> [file2] ...                    - Remove one or more files/directories
+  rmdir <dir1> [dir2] ...                   - Remove one or more directories recursively
+  upload <file1> [file2] ...                - Upload one or more files
+  uploaddir <dir1> [dir2] ...               - Upload one or more folders recursively
+  sync <path1> [path2] ...                  - Sync files/folders (upload new, replace existing)
+  sync-skip <path1> [path2] ...             - Sync files/folders (upload new, skip existing)
   rename <old_name> <new_name>              - Rename file or folder
 
 {Fore.YELLOW}Other:{Style.RESET_ALL}
@@ -274,6 +425,18 @@ Examples:
   python ftp_client.py -H ftp.example.com -u myuser
   python ftp_client.py -H ftp.example.com -u myuser -p mypassword
   python ftp_client.py --host ftp.example.com --user myuser --port 2121
+
+Passwords with Special Characters:
+  If your password contains special characters (|, &, ;, $, etc.), use one of these methods:
+
+  1. Omit -p flag (RECOMMENDED - password won't appear in history):
+     python ftp_client.py -H ftp.example.com -u myuser
+
+  2. Use single quotes (Unix/Linux/Mac):
+     python ftp_client.py -H ftp.example.com -u myuser -p 'my|p@ss$word'
+
+  3. Use double quotes and escape special characters:
+     python ftp_client.py -H ftp.example.com -u myuser -p "my|p@ss\\$word"
         """
     )
     parser.add_argument('-H', '--host', help='FTP server hostname or IP address')
@@ -364,31 +527,54 @@ Examples:
 
             elif cmd == 'rmdir':
                 if not args:
-                    print(f"{Fore.RED}Usage: rmdir <directory>{Style.RESET_ALL}")
+                    print(f"{Fore.RED}Usage: rmdir <dir1> [dir2] ...{Style.RESET_ALL}")
                 else:
-                    client.remove_directory_recursive(args[0])
+                    if len(args) == 1:
+                        client.remove_directory_recursive(args[0])
+                    else:
+                        client.remove_directories(args)
 
             elif cmd == 'upload':
                 if not args:
-                    print(f"{Fore.RED}Usage: upload <local_path> [remote_path]{Style.RESET_ALL}")
+                    print(f"{Fore.RED}Usage: upload <file1> [file2] ...{Style.RESET_ALL}")
                 else:
-                    local_path = args[0]
-                    remote_path = args[1] if len(args) > 1 else None
-                    client.upload_file(local_path, remote_path)
+                    if len(args) == 1:
+                        client.upload_file(args[0])
+                    else:
+                        client.upload_files(args)
 
             elif cmd == 'uploaddir':
                 if not args:
-                    print(f"{Fore.RED}Usage: uploaddir <local_path> [remote_path]{Style.RESET_ALL}")
+                    print(f"{Fore.RED}Usage: uploaddir <dir1> [dir2] ...{Style.RESET_ALL}")
                 else:
-                    local_path = args[0]
-                    remote_path = args[1] if len(args) > 1 else None
-                    client.upload_folder(local_path, remote_path)
+                    if len(args) == 1:
+                        client.upload_folder(args[0])
+                    else:
+                        client.upload_folders(args)
 
             elif cmd == 'rename':
                 if len(args) < 2:
                     print(f"{Fore.RED}Usage: rename <old_name> <new_name>{Style.RESET_ALL}")
                 else:
                     client.rename(args[0], args[1])
+
+            elif cmd == 'sync':
+                if not args:
+                    print(f"{Fore.RED}Usage: sync <path1> [path2] ...{Style.RESET_ALL}")
+                else:
+                    if len(args) == 1:
+                        client.sync_path(args[0], None, skip_existing=False)
+                    else:
+                        client.sync_paths(args, skip_existing=False)
+
+            elif cmd == 'sync-skip':
+                if not args:
+                    print(f"{Fore.RED}Usage: sync-skip <path1> [path2] ...{Style.RESET_ALL}")
+                else:
+                    if len(args) == 1:
+                        client.sync_path(args[0], None, skip_existing=True)
+                    else:
+                        client.sync_paths(args, skip_existing=True)
 
             else:
                 print(f"{Fore.RED}✗ Unknown command: {cmd}{Style.RESET_ALL}")

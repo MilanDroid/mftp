@@ -34,4 +34,4 @@ dependencies = [
 mftp = "ftp_client:main"
 
 [project.urls]
-Homepage = "https://github.com/antony/mftp"
+Homepage = "https://github.com/MilanDroid/mftp"

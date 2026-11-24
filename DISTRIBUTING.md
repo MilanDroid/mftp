@@ -112,13 +112,13 @@ Users can install directly from Git:
 
 ```bash
 # From GitHub
-pip install git+https://github.com/antony/mftp.git
+pip install git+https://github.com/MilanDroid/mftp.git
 
 # From specific branch
-pip install git+https://github.com/antony/mftp.git@main
+pip install git+https://github.com/MilanDroid/mftp.git@main
 
 # From specific tag
-pip install git+https://github.com/antony/mftp.git@v1.0.0
+pip install git+https://github.com/MilanDroid/mftp.git@v1.0.0
 ```
 
 ### Method 5: Source Tarball
@@ -270,7 +270,7 @@ gpg --detach-sign -a dist/mftp_client-1.0.0-py3-none-any.whl
 ### Issue Tracking
 
 Direct users to report issues:
-- GitHub Issues: https://github.com/antony/mftp/issues
+- GitHub Issues: https://github.com/MilanDroid/mftp/issues
 - Email support
 - Internal ticketing system
 

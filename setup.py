@@ -14,7 +14,7 @@ setup(
     description="A feature-rich command-line FTP client with password authentication and recursive operations",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/antony/mftp",
+    url="https://github.com/MilanDroid/mftp",
     py_modules=["ftp_client"],
     python_requires=">=3.6",
     install_requires=requirements,

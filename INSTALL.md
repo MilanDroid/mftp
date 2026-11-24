@@ -98,7 +98,7 @@ mftp --help
 ### Install from Source
 
 ```bash
-git clone https://github.com/antony/mftp.git
+git clone https://github.com/MilanDroid/mftp.git
 cd mftp
 pip install -e .
 ```

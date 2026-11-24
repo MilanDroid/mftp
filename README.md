@@ -49,7 +49,7 @@ Run `mftp` with no options to start disconnected, then connect from inside the c
 | `uploaddir <dir1> [dir2] ...` | Upload one or more folders, recursively |
 | `sync <path1> [path2] ...` | Upload files and folders, replacing anything already on the server |
 | `sync-skip <path1> [path2] ...` | Upload files and folders, leaving anything already on the server untouched |
-| `rm <file1> [file2] ...` | Delete one or more files |
+| `rm <file1> [file2] ...` | Delete one or more files. A folder passed here is deleted with everything in it |
 | `rmdir <dir1> [dir2] ...` | Delete one or more folders and everything in them |
 | `rename <old> <new>` | Rename a file or folder |
 | `help` | List the commands |

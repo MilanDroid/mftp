@@ -117,8 +117,8 @@ pip install git+https://github.com/MilanDroid/mftp.git
 # From specific branch
 pip install git+https://github.com/MilanDroid/mftp.git@main
 
-# From specific tag
-pip install git+https://github.com/MilanDroid/mftp.git@v1.0.0
+# From a release tag (replace <tag> with a published one, such as v1.0.0)
+pip install git+https://github.com/MilanDroid/mftp.git@<tag>
 ```
 
 ### Method 5: Source Tarball
